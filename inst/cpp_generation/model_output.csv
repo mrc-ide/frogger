@@ -20,3 +20,4 @@ hc2_noart_aids_deaths,hc2_noart_aids_deaths,REAL,ModelVariant::run_child_model,5
 hc1_art_aids_deaths,hc1_art_aids_deaths,REAL,ModelVariant::run_child_model,5,base.hTS,children.hc1DS,children.hc1AG,base.NS,output_years
 hc2_art_aids_deaths,hc2_art_aids_deaths,REAL,ModelVariant::run_child_model,5,base.hTS,children.hc2DS,children.hc2AG,base.NS,output_years
 hc_art_num,hc_art_num,REAL,ModelVariant::run_child_model,1,output_years,,,,
+hiv_births,hiv_births,REAL,ModelVariant::run_child_model,1,output_years,,,,

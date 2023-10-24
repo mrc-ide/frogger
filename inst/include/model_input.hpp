@@ -71,6 +71,7 @@ leapfrog::Parameters<ModelVariant, real_type> setup_model_params(const Rcpp::Lis
       initiation_mortality_weight
   };
 
+
   const leapfrog::BaseModelParameters<real_type> base_model_params = {
         options,
         demography,
@@ -91,7 +92,7 @@ leapfrog::Parameters<ModelVariant, real_type> setup_model_params(const Rcpp::Lis
     const leapfrog::TensorMap1<real_type> hc2_cd4_prog = parse_data<real_type>(data, "adol_cd4_prog", children.hc2DS);
     const real_type ctx_effect = Rcpp::as<real_type>(data["ctx_effect"]);
     const leapfrog::TensorMap1<real_type> ctx_val = parse_data<real_type>(data, "ctx_val", proj_years);
-    const leapfrog::TensorMap1<real_type> hc_art_elig_age = parse_data<real_type>(data, "paed_art_elig_age", proj_years);
+    const leapfrog::TensorMap1<int> hc_art_elig_age = parse_data<int>(data, "paed_art_elig_age", proj_years);
     const leapfrog::Tensor2<real_type> hc_art_elig_cd4 = convert_base<2>(parse_data<real_type>(data, "paed_art_elig_cd4", options.p_idx_hiv_first_adult, proj_years));
     const leapfrog::TensorMap3<real_type> hc_art_mort_rr = parse_data<real_type>(data, "mort_art_rr", base.hTS, options.p_idx_hiv_first_adult, proj_years);
     const leapfrog::TensorMap3<real_type> hc1_art_mort = parse_data<real_type>(data, "paed_art_mort", children.hc1DS, base.hTS, children.hc1AG);
@@ -99,6 +100,12 @@ leapfrog::Parameters<ModelVariant, real_type> setup_model_params(const Rcpp::Lis
     const leapfrog::TensorMap1<int> hc_art_isperc = parse_data<int>(data, "artpaeds_isperc", proj_years);
     const leapfrog::TensorMap1<real_type> hc_art_val = parse_data<real_type>(data, "paed_art_val", proj_years);
     const leapfrog::TensorMap2<real_type> hc_art_init_dist = parse_data<real_type>(data, "init_art_dist", options.p_idx_hiv_first_adult, proj_years);
+    const leapfrog::TensorMap2<real_type> adult_cd4_dist = parse_data<real_type>(data, "adult_cd4_dist", base.hDS, children.hc2DS);
+    const leapfrog::TensorMap1<real_type> fert_mult_by_age = parse_data<real_type>(data, "fert_mult_by_age", options.p_fertility_age_groups);
+    const leapfrog::TensorMap1<real_type> fert_mult_offart = parse_data<real_type>(data, "fert_mult_offart", base.hDS);
+    const leapfrog::TensorMap1<real_type> fert_mult_onart = parse_data<real_type>(data, "fert_mult_onart", options.p_fertility_age_groups);
+    const leapfrog::TensorMap1<real_type> total_fertility_rate = parse_data<real_type>(data, "tfr", proj_years);
+    const real_type local_adj_factor = Rcpp::as<real_type>(data["laf"]);
     const leapfrog::Children<real_type> child = {
         hc_nosocomial,
         hc1_cd4_dist,
@@ -116,7 +123,13 @@ leapfrog::Parameters<ModelVariant, real_type> setup_model_params(const Rcpp::Lis
         hc2_art_mort,
         hc_art_isperc,
         hc_art_val,
-        hc_art_init_dist
+        hc_art_init_dist,
+        adult_cd4_dist,
+        fert_mult_by_age,
+        fert_mult_offart,
+        fert_mult_onart,
+        total_fertility_rate,
+        local_adj_factor
     };
     const leapfrog::ChildModelParameters<ModelVariant, real_type> child_model_params = {
         child

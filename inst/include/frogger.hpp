@@ -9,6 +9,7 @@
 
 namespace leapfrog {
 
+
 template<typename ModelVariant, typename real_type>
 OutputState<ModelVariant, real_type> run_model(int time_steps,
                                                std::vector<int> save_steps,

@@ -273,7 +273,7 @@ void hc_initiate_art_by_cd4(int time_step,
     for (int cat = 0; cat < hc_ss.hcTT; ++cat) {
       for (int a = cpars.hc_art_elig_age(time_step); a < pars.base.options.p_idx_fertility_first; ++a) {
         for (int hd = 0; hd < hc_ss.hc1DS; ++hd) {
-          if (hd >= cpars.hc_art_elig_cd4(a, time_step)) {
+          if (hd >= (cpars.hc_art_elig_cd4(a, time_step))) {
             if (a < hc_ss.hc2_agestart) {
               intermediate.children.hc_art_need(hd, cat, a, s) += state_next.children.hc1_hiv_pop(hd, cat, a, s);
             } else if (hd < hc_ss.hc2DS) {
@@ -318,7 +318,7 @@ void hc_adjust_art_initiates_for_mort(int time_step,
             for (int dur = 0; dur < ss.hTS; ++dur) {
               if (intermediate.children.hc_art_init(hd, cat, a, s) < 0) {
                 intermediate.children.hc_art_init(hd, cat, a, s) = 0.0;
-              }else{
+              } else {
                 intermediate.children.hc_art_init(hd, cat, a, s) = intermediate.children.hc_art_init(hd, cat, a, s);
               }
             }// end ss.hTS
@@ -403,7 +403,7 @@ void hc_art_num_num(int time_step,
         for (int dur = 0; dur < ss.hTS; ++dur) {
           if (a < hc_ss.hc2_agestart) {
             state_next.children.hc_art_num -= state_next.children.hc1_art_pop(dur, hd, a, s);
-          }else if (hd < (hc_ss.hc2DS)) {
+          } else if (hd < (hc_ss.hc2DS)) {
             state_next.children.hc_art_num -= state_next.children.hc2_art_pop(dur, hd, a-hc_ss.hc2_agestart, s);
           }
         }// end ss.hTS
@@ -438,7 +438,7 @@ void hc_art_pct_pct(int time_step,
           if (a < hc_ss.hc2_agestart) {
             state_next.children.hc_art_num += state_next.children.hc1_art_pop(dur, hd, a, s);
             state_next.children.hc_art_num += state_next.children.hc1_art_aids_deaths(dur,hd, a, s);
-          }else if (hd < (hc_ss.hc2DS )) {
+          } else if (hd < (hc_ss.hc2DS )) {
             state_next.children.hc_art_num += state_next.children.hc2_art_pop(dur, hd, a-hc_ss.hc2_agestart, s);
             state_next.children.hc_art_num += state_next.children.hc2_art_aids_deaths(dur,hd, a-hc_ss.hc2_agestart, s);
           }
@@ -455,7 +455,7 @@ void hc_art_pct_pct(int time_step,
         for (int dur = 0; dur < ss.hTS; ++dur) {
           if (a < hc_ss.hc2_agestart) {
             state_next.children.hc_art_num -= state_next.children.hc1_art_pop(dur, hd, a, s);
-          }else if (hd < (hc_ss.hc2DS)) {
+          } else if (hd < (hc_ss.hc2DS)) {
             state_next.children.hc_art_num -= state_next.children.hc2_art_pop(dur, hd, a-hc_ss.hc2_agestart, s);
           }
         } // end ss.hTS
@@ -535,7 +535,7 @@ void hc_art_pct_num(int time_step,
         for (int dur = 0; dur < ss.hTS; ++dur) {
           if (a < hc_ss.hc2_agestart) {
             state_next.children.hc_art_num -= state_next.children.hc1_art_pop(dur, hd, a, s);
-          }else if (hd < (hc_ss.hc2DS)) {
+          } else if (hd < (hc_ss.hc2DS)) {
             state_next.children.hc_art_num -= state_next.children.hc2_art_pop(dur, hd, a-hc_ss.hc2_agestart, s);
           }
         } // end ss.hTS
@@ -591,7 +591,7 @@ void hc_art_initiation_by_age(int time_step,
   } // end ss.NS
   if (intermediate.children.hc_initByAge == 0.0) {
     intermediate.children.hc_adj = 1.0 ;
-  }else{
+  } else {
     intermediate.children.hc_adj = state_next.children.hc_art_num / intermediate.children.hc_initByAge;
   }
   for (int s = 0; s <ss.NS; ++s) {
@@ -600,25 +600,24 @@ void hc_art_initiation_by_age(int time_step,
         for (int hd = 0; hd < hc_ss.hc1DS; ++hd) {
           if ((intermediate.children.hc_adj * cpars.hc_art_init_dist(a, time_step)) > 1.0) {
             intermediate.children.hc_art_scalar = 1.0;
-          }else{
+          } else {
             intermediate.children.hc_art_scalar = intermediate.children.hc_adj * cpars.hc_art_init_dist(a, time_step);
           }
           if (state_next.children.hc_art_num > 0.0) {
             intermediate.children.hc_art_scalar = intermediate.children.hc_art_scalar;
-          }else{
+          } else {
             intermediate.children.hc_art_scalar = 0.0;
           }
           if (a < hc_ss.hc2_agestart) {
             state_next.children.hc1_art_pop(0, hd, a, s) += intermediate.children.hc_art_scalar * intermediate.children.hc_art_init(hd, cat, a, s);
-          }else if (hd < (hc_ss.hc2DS)) {
+          } else if (hd < (hc_ss.hc2DS)) {
             state_next.children.hc2_art_pop(0, hd, a - hc_ss.hc2_agestart, s) += intermediate.children.hc_art_scalar * intermediate.children.hc_art_init(hd, cat, a, s);
           }
           if (a < hc_ss.hc2_agestart) {
             state_next.children.hc1_hiv_pop(hd, cat, a, s) -= intermediate.children.hc_art_scalar * intermediate.children.hc_art_init(hd, cat, a, s);
-          }else if (hd < (hc_ss.hc2DS )) {
+          } else if (hd < (hc_ss.hc2DS )) {
             state_next.children.hc2_hiv_pop(hd, cat, a - hc_ss.hc2_agestart, s) -=  intermediate.children.hc_art_scalar * intermediate.children.hc_art_init(hd, cat, a, s);
           }
-
         } //end ss.hc1DS
       } // end a
     } // end hcTT
@@ -650,10 +649,10 @@ void run_child_art_initiation(int time_step,
             state_next.children.hc1_art_pop(1, hd, a, s) += state_next.children.hc1_art_pop(0, hd, a, s);
             state_next.children.hc1_art_pop(0, hd, a, s) -= state_next.children.hc1_art_pop(0, hd, a, s);
           }
-        }else if (hd < (hc_ss.hc2DS)) {
-            state_next.children.hc2_art_pop(1, hd, a-hc_ss.hc2_agestart, s) += state_next.children.hc2_art_pop(0, hd, a-hc_ss.hc2_agestart, s);
-            state_next.children.hc2_art_pop(0, hd, a-hc_ss.hc2_agestart, s) -= state_next.children.hc2_art_pop(0, hd, a-hc_ss.hc2_agestart, s);
-          }
+        } else if (hd < (hc_ss.hc2DS)) {
+          state_next.children.hc2_art_pop(1, hd, a-hc_ss.hc2_agestart, s) += state_next.children.hc2_art_pop(0, hd, a-hc_ss.hc2_agestart, s);
+          state_next.children.hc2_art_pop(0, hd, a-hc_ss.hc2_agestart, s) -= state_next.children.hc2_art_pop(0, hd, a-hc_ss.hc2_agestart, s);
+        }
       }//end ss.NS
     }// end a
   }// end ss.hc1DS
@@ -723,6 +722,67 @@ void run_child_art_mortality(int time_step,
   }// end ss.hc1DS
 }
 
+
+template<typename ModelVariant, typename real_type>
+void run_wlhiv_births(int time_step,
+                      const Parameters<ModelVariant, real_type> &pars,
+                      const State<ModelVariant, real_type> &state_curr,
+                      State<ModelVariant, real_type> &state_next,
+                      IntermediateData<ModelVariant, real_type> &intermediate) {
+  static_assert(ModelVariant::run_child_model,
+                "run_wlhiv_births can only be called for model variants where run_child_model is true");
+  constexpr auto ss = StateSpace<ModelVariant>().base;
+  const auto cpars = pars.children.children;
+  const auto demog = pars.base.demography;
+
+  for (int a = 0; a < pars.base.options.p_fertility_age_groups; ++a) {
+    intermediate.children.asfr_sum += demog.age_specific_fertility_rate(a, time_step);
+  } // end a
+
+  intermediate.children.births_sum = state_next.base.births;
+
+
+  for (int a = 0; a < pars.base.options.p_fertility_age_groups; ++a) {
+    intermediate.children.nHIVcurr = 0.0;
+    intermediate.children.nHIVlast = 0.0;
+    intermediate.children.df = 0.0;
+
+    for (int hd = 0; hd < ss.hDS; ++hd) {
+      intermediate.children.nHIVcurr += state_next.base.h_hiv_adult(hd, a, 1);
+      intermediate.children.nHIVlast += state_curr.base.h_hiv_adult(hd, a, 1);
+      for (int ht = 0; ht < ss.hTS; ++ht) {
+        intermediate.children.nHIVcurr += state_next.base.h_art_adult(ht, hd, a, 1);
+        intermediate.children.nHIVlast += state_curr.base.h_art_adult(ht, hd, a, 1);
+      } //end hTS
+    } //end hDS
+
+    intermediate.children.prev = intermediate.children.nHIVcurr / state_next.base.p_total_pop(a + 15,1);
+
+    for (int hd = 0; hd < ss.hDS; ++hd) {
+      intermediate.children.df += cpars.local_adj_factor * cpars.fert_mult_by_age(a) * cpars.fert_mult_offart(hd) * ((state_next.base.h_hiv_adult(hd, a, 1) + state_curr.base.h_hiv_adult(hd, a, 1)) / 2);
+      //women on ART less than 6 months use the off art fertility multiplier
+       intermediate.children.df += cpars.local_adj_factor * cpars.fert_mult_by_age(a) * cpars.fert_mult_offart(hd) * ((state_next.base.h_art_adult(0, hd, a, 1) + state_curr.base.h_art_adult(0, hd, a, 1)) / 2);
+       for (int ht = 1; ht < ss.hTS; ++ht) {
+         intermediate.children.df += cpars.local_adj_factor * cpars.fert_mult_onart(a) * ((state_next.base.h_art_adult(ht, hd, a, 1) + state_curr.base.h_art_adult(ht, hd, a, 1)) / 2);
+      } //end hTS
+    } // end hDS
+
+    if (intermediate.children.nHIVcurr > 0) {
+      intermediate.children.df = intermediate.children.df / ((intermediate.children.nHIVcurr + intermediate.children.nHIVlast) / 2);
+    } else {
+      intermediate.children.df = 1;
+    }
+
+    intermediate.children.birthsCurrAge = (intermediate.children.nHIVcurr + intermediate.children.nHIVlast) / 2 * cpars.total_fertility_rate(time_step) * intermediate.children.df / (intermediate.children.df * intermediate.children.prev + 1 - intermediate.children.prev) *  demog.age_specific_fertility_rate(a, time_step) / intermediate.children.asfr_sum ;
+    intermediate.children.birthsHE += intermediate.children.birthsCurrAge;
+    if (a < 9) {
+      intermediate.children.births_HE_15_24 += intermediate.children.birthsCurrAge;
+    }
+  } // end a
+
+  state_next.children.hiv_births = intermediate.children.birthsHE;
+}
+
 }// namespace internal
 
 template<typename ModelVariant, typename real_type>
@@ -732,15 +792,17 @@ void run_child_model_simulation(int time_step,
                                 State<ModelVariant, real_type> &state_next,
                                 internal::IntermediateData<ModelVariant, real_type> &intermediate) {
   internal::run_child_ageing(time_step, pars, state_curr, state_next, intermediate);
-  internal::run_child_hiv_infections(time_step, pars, state_curr, state_next, intermediate);
   internal::run_child_natural_history(time_step, pars, state_curr, state_next, intermediate);
   internal::run_child_hiv_mort(time_step, pars, state_curr, state_next, intermediate);
   internal::add_child_grad(time_step, pars, state_curr, state_next, intermediate);
+  //This is only the order for nosocomial infectiosn
+  internal::run_child_hiv_infections(time_step, pars, state_curr, state_next, intermediate);
   // this function may need to be broken up, its around 350 lines
   // !!!TODO: also need to fix the looping order for some loops
   // !!!TODO: put this in an if statement to only run if the first year of ART has passed
   internal::run_child_art_initiation(time_step, pars, state_curr, state_next, intermediate);
   internal::run_child_art_mortality(time_step, pars, state_curr, state_next, intermediate);
+  internal::run_wlhiv_births(time_step, pars, state_curr, state_next, intermediate);
 }
 
 } // namespace leapfrog

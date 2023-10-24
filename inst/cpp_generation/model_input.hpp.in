@@ -48,6 +48,7 @@ leapfrog::Parameters<ModelVariant, real_type> setup_model_params(const Rcpp::Lis
       initiation_mortality_weight
   };
 
+
   const leapfrog::BaseModelParameters<real_type> base_model_params = {
         options,
         demography,

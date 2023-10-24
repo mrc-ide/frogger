@@ -84,7 +84,7 @@ struct ChildModelOutputState<ChildModel, real_type> {
   Tensor5<real_type> hc1_art_aids_deaths;
   Tensor5<real_type> hc2_art_aids_deaths;
   Tensor1<real_type> hc_art_num;
-
+  Tensor1<real_type> hiv_births;
 
   ChildModelOutputState(int no_output_years)
       : hc1_hiv_pop(StateSpace<ChildModel>().children.hc1DS,
@@ -119,7 +119,8 @@ struct ChildModelOutputState<ChildModel, real_type> {
                             StateSpace<ChildModel>().children.hc2DS,
                             StateSpace<ChildModel>().children.hc2AG,
                             StateSpace<ChildModel>().base.NS, no_output_years),
-        hc_art_num(no_output_years) {
+        hc_art_num(no_output_years),
+        hiv_births(no_output_years){
     hc1_hiv_pop.setZero();
     hc2_hiv_pop.setZero();
     hc1_art_pop.setZero();
@@ -129,6 +130,7 @@ struct ChildModelOutputState<ChildModel, real_type> {
     hc1_art_aids_deaths.setZero();
     hc2_art_aids_deaths.setZero();
     hc_art_num.setZero();
+    hiv_births.setZero();
   }
 };
 
@@ -199,6 +201,8 @@ public:
       state.children.hc1_art_aids_deaths;
     children_state.hc2_art_aids_deaths.chip(i, children_state.hc2_art_aids_deaths.NumDimensions - 1) =
       state.children.hc2_art_aids_deaths;
+    children_state.hc_art_num(i) = state.children.hc_art_num;
+    children_state.hiv_births(i) = state.children.hiv_births;
   }
 };
 
