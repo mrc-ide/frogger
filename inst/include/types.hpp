@@ -75,6 +75,9 @@ constexpr int hPS = StateSpace<ModelVariant>().children.hPS;
 template<typename ModelVariant>
 constexpr int hBF = StateSpace<ModelVariant>().children.hBF;
 
+template<typename ModelVariant>
+constexpr int hBF_coarse = StateSpace<ModelVariant>().children.hBF_coarse;
+
 template<typename real_type>
 struct Options {
   int hts_per_year;
@@ -175,6 +178,19 @@ struct Children {
   TensorMap1<real_type> fert_mult_onart;
   TensorMap1<real_type> total_fertility_rate;
   real_type local_adj_factor;
+
+  //perinatal transmission
+  TensorMap2<real_type> PMTCT;
+  TensorMap2<real_type> vertical_transmission_rate;
+  TensorMap3<real_type> PMTCT_transmission_rate;
+  TensorMap2<real_type> PMTCT_dropout;
+  TensorMap1<int> PMTCT_input_is_percent;
+
+  //breastfeeding transmission
+  TensorMap2<real_type> breastfeeding_duration_art;
+  TensorMap2<real_type> breastfeeding_duration_no_art;
+
+
 };
 
 template<typename ModelVariant, typename real_type>
@@ -469,6 +485,41 @@ struct ChildModelIntermediateData<ChildModel, real_type> {
   real_type birthsCurrAge;
   real_type birthsHE;
   real_type births_HE_15_24;
+  //started here
+  TensorFixedSize <real_type, Sizes<hAG<ChildModel>, NS<ChildModel>>> p_hiv_neg_pop;
+  real_type sumARV;
+  real_type need_PMTCT;
+  TensorFixedSize <real_type, Sizes<hPS<ChildModel>>> PMTCT_coverage;
+  real_type num_wlhiv_lt200;
+  real_type num_wlhiv_200to350;
+  real_type num_wlhiv_gte350;
+  real_type num_wlhiv;
+  real_type prop_wlhiv_lt200;
+  real_type prop_wlhiv_200to350;
+  real_type prop_wlhiv_gte350;
+  real_type prop_wlhiv_lt350;
+  real_type excessratio;
+  real_type excessratio_bf;
+  real_type optA_transmission_rate;
+  real_type optB_transmission_rate;
+  real_type optA_bf_transmission_rate;
+  real_type optB_bf_transmission_rate;
+  real_type retained_on_ART;
+  real_type retained_started_ART;
+  real_type perinatal_transmission_rate;
+  real_type receiving_PMTCT;
+  real_type no_PMTCT;
+  real_type perinatal_transmission_rate_bf_calc;
+  real_type age_weighted_hivneg;
+  real_type age_weighted_infections;
+  real_type incidence_rate_wlhiv;
+  real_type perinatal_transmission_from_incidence;
+  real_type bf_at_risk;
+  real_type bf_incident_hiv_transmission_rate;
+  real_type percent_no_treatment;
+  real_type percent_on_treatment;
+  TensorFixedSize <real_type, Sizes<hBF_coarse<ChildModel>>> bf_transmission_rate;
+
 
   ChildModelIntermediateData() {};
 
@@ -494,6 +545,39 @@ struct ChildModelIntermediateData<ChildModel, real_type> {
     birthsCurrAge = 0.0;
     birthsHE = 0.0;
     births_HE_15_24 = 0.0;
+    p_hiv_neg_pop.setZero();
+    sumARV = 0.0;
+    need_PMTCT = 0.0;
+    PMTCT_coverage.setZero();
+    num_wlhiv_lt200 = 0.0;
+    num_wlhiv_200to350 = 0.0;
+    num_wlhiv_gte350 = 0.0;
+    num_wlhiv = 0.0;
+    prop_wlhiv_lt200 = 0.0;
+    prop_wlhiv_200to350 = 0.0;
+    prop_wlhiv_gte350 = 0.0;
+    prop_wlhiv_lt350 = 0.0;
+    excessratio = 0.0;
+    excessratio_bf = 0.0;
+    optA_transmission_rate = 0.0;
+    optB_transmission_rate = 0.0;
+    optA_bf_transmission_rate = 0.0;
+    optB_bf_transmission_rate = 0.0;
+    retained_on_ART = 0.0;
+    retained_started_ART = 0.0;
+    perinatal_transmission_rate = 0.0;
+    receiving_PMTCT = 0.0;
+    no_PMTCT = 0.0;
+    perinatal_transmission_rate_bf_calc = 0.0;
+    age_weighted_hivneg = 0.0;
+    age_weighted_infections = 0.0;
+    incidence_rate_wlhiv = 0.0;
+    perinatal_transmission_from_incidence = 0.0;
+    bf_at_risk = 0.0;
+    bf_incident_hiv_transmission_rate = 0.0;
+    percent_no_treatment = 0.0;
+    percent_on_treatment = 0.0;
+    bf_transmission_rate.setZero();
   };
 };
 

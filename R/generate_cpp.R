@@ -211,6 +211,7 @@ generate_length1_input <- function(input) {
           input$type, input$cpp_name, input$type, input$r_name)
 }
 
+
 generate_input_from_value <- function(inputs) {
   vcapply(inputs, function(input) {
     dimensions <- paste(input$parsed_dims, collapse = ", ")
@@ -248,7 +249,14 @@ generate_return <- function() {
     "      fert_mult_offart,",
     "      fert_mult_onart,",
     "      total_fertility_rate,",
-    "      local_adj_factor",
+    "      local_adj_factor,",
+    "      PMTCT,",
+    "      vertical_transmission_rate,",
+    "      PMTCT_transmission_rate,",
+    "      PMTCT_dropout,",
+    "      PMTCT_input_is_percent,",
+    "      breastfeeding_duration_art,",
+    "      breastfeeding_duration_no_art",
     "  };",
     "  const leapfrog::ChildModelParameters<ModelVariant, real_type> child_model_params = {",
     "      child",

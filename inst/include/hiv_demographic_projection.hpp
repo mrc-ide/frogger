@@ -15,6 +15,8 @@ void run_hiv_ageing_and_mortality(int time_step,
                                   IntermediateData<ModelVariant, real_type> &intermediate) {
   const auto demog = pars.base.demography;
   constexpr auto ss = StateSpace<ModelVariant>().base;
+
+
   // Non-hiv deaths
   for (int g = 0; g < ss.NS; ++g) {
     for (int a = 1; a < ss.pAG; ++a) {
@@ -31,6 +33,8 @@ void run_hiv_ageing_and_mortality(int time_step,
     state_next.base.p_hiv_pop(ss.pAG - 1, g) +=
         state_curr.base.p_hiv_pop(ss.pAG - 1, g);
   }
+
+
 }
 
 template<typename ModelVariant, typename real_type>
@@ -87,6 +91,7 @@ void run_hiv_and_art_stratified_ageing(int time_step,
     }
   }
 
+
   for (int g = 0; g < ss.NS; ++g) {
     for (int ha = 1; ha < ss.hAG; ++ha) {
       for (int hm = 0; hm < ss.hDS; ++hm) {
@@ -105,6 +110,7 @@ void run_hiv_and_art_stratified_ageing(int time_step,
     }
   }
 
+
   // TODO: add HIV+ 15 year old entrants see https://github.com/mrc-ide/leapfrog/issues/8
   if constexpr (ModelVariant::run_child_model) {
     for (int g = 0; g < ss.NS; ++g) {
@@ -120,6 +126,7 @@ void run_hiv_and_art_stratified_ageing(int time_step,
       }
     }
 
+
   } else {
     for (int g = 0; g < ss.NS; ++g) {
       for (int hm = 0; hm < ss.hDS; ++hm) {
@@ -134,6 +141,7 @@ void run_hiv_and_art_stratified_ageing(int time_step,
       }
     }
   }
+
 }
 
 
@@ -199,16 +207,20 @@ void run_hiv_pop_demographic_projection(int time_step,
                                         const State<ModelVariant, real_type> &state_curr,
                                         State<ModelVariant, real_type> &state_next,
                                         internal::IntermediateData<ModelVariant, real_type> &intermediate) {
+
   internal::run_hiv_ageing_and_mortality<ModelVariant>(time_step, pars, state_curr, state_next,
                                                        intermediate);
+
   if constexpr (ModelVariant::run_child_model) {
     internal::run_age_15_entrants<ModelVariant>(time_step, pars, state_curr, state_next, intermediate);
   }
 
   internal::run_hiv_and_art_stratified_ageing<ModelVariant>(time_step, pars, state_curr, state_next,
                                                             intermediate);
+
   internal::run_hiv_and_art_stratified_deaths_and_migration<ModelVariant>(time_step, pars, state_curr,
                                                                           state_next, intermediate);
+
 }
 
 }
