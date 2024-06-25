@@ -13,38 +13,77 @@ namespace leapfrog {
 
 namespace {
 using Eigen::Sizes;
-using Eigen::TensorFixedSize;
 }
 
-template<typename ModelVariant, typename real_type>
+// In State we want to be able to able to choose between the State object
+// owning the data or it to be a reference to data owned elsewhere.
+template<typename T, typename Sizes, bool OwnedData>
+using TensorType = std::conditional_t<OwnedData,
+                                      Eigen::TensorFixedSize<T, Sizes>,
+                                      Eigen::TensorMap<Eigen::TensorFixedSize<T, Sizes>>>;
+
+template<typename ModelVariant, typename real_type, bool OwnedData>
 struct ChildModelState {
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   ChildModelState(const Parameters<ModelVariant, real_type> &pars) {}
 
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   void reset() {}
 };
 
-template<typename ModelVariant, typename real_type>
+template<typename ModelVariant, typename real_type, bool OwnedData>
 struct BaseModelState {
-  TensorFixedSize<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>> p_total_pop;
-  real_type births;
-  TensorFixedSize<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>> p_total_pop_natural_deaths;
-  TensorFixedSize<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>> p_hiv_pop;
-  TensorFixedSize<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>> p_hiv_pop_natural_deaths;
-  TensorFixedSize<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>> h_hiv_adult;
-  TensorFixedSize<real_type, Sizes<hTS<ModelVariant>, hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>> h_art_adult;
-  TensorFixedSize<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>> h_hiv_deaths_no_art;
-  TensorFixedSize<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>> p_infections;
-  TensorFixedSize<real_type, Sizes<hTS<ModelVariant>, hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>> h_hiv_deaths_art;
-  TensorFixedSize<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>> h_art_initiation;
-  TensorFixedSize<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>> p_hiv_deaths;
+  TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData> p_total_pop;
+  TensorType<real_type, Sizes<1>, OwnedData> births;
+  TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData> p_total_pop_natural_deaths;
+  TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData> p_hiv_pop;
+  TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData> p_hiv_pop_natural_deaths;
+  TensorType<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData> h_hiv_adult;
+  TensorType<real_type, Sizes<hTS<ModelVariant>, hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData> h_art_adult;
+  TensorType<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData> h_hiv_deaths_no_art;
+  TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData> p_infections;
+  TensorType<real_type, Sizes<hTS<ModelVariant>, hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData> h_hiv_deaths_art;
+  TensorType<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData> h_art_initiation;
+  TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData> p_hiv_deaths;
 
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   BaseModelState(const Parameters<ModelVariant, real_type> &pars) {
+
     reset();
   }
 
+  template<bool O = OwnedData, typename = std::enable_if_t<!O>>
+  BaseModelState(
+    const TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& p_total_pop,
+    const TensorType<real_type, Sizes<1>, OwnedData>& births,
+    const TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& p_total_pop_natural_deaths,
+    const TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& p_hiv_pop,
+    const TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& p_hiv_pop_natural_deaths,
+    const TensorType<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& h_hiv_adult,
+    const TensorType<real_type, Sizes<hTS<ModelVariant>, hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& h_art_adult,
+    const TensorType<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& h_hiv_deaths_no_art,
+    const TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& p_infections,
+    const TensorType<real_type, Sizes<hTS<ModelVariant>, hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& h_hiv_deaths_art,
+    const TensorType<real_type, Sizes<hDS<ModelVariant>, hAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& h_art_initiation,
+    const TensorType<real_type, Sizes<pAG<ModelVariant>, NS<ModelVariant>>, OwnedData>& p_hiv_deaths
+  ) :
+    p_total_pop(p_total_pop),
+    births(births),
+    p_total_pop_natural_deaths(p_total_pop_natural_deaths),
+    p_hiv_pop(p_hiv_pop),
+    p_hiv_pop_natural_deaths(p_hiv_pop_natural_deaths),
+    h_hiv_adult(h_hiv_adult),
+    h_art_adult(h_art_adult),
+    h_hiv_deaths_no_art(h_hiv_deaths_no_art),
+    p_infections(p_infections),
+    h_hiv_deaths_art(h_hiv_deaths_art),
+    h_art_initiation(h_art_initiation),
+    p_hiv_deaths(p_hiv_deaths) {}
+
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   void reset() {
     p_total_pop.setZero();
-    births = 0;
+    births.setZero();
     p_total_pop_natural_deaths.setZero();
     p_hiv_pop.setZero();
     p_hiv_pop_natural_deaths.setZero();
@@ -58,27 +97,62 @@ struct BaseModelState {
   }
 };
 
-template<typename real_type>
-struct ChildModelState<ChildModel, real_type> {
-  TensorFixedSize<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>> hc1_hiv_pop;
-  TensorFixedSize<real_type, Sizes<hc2DS<ChildModel>, hcTT<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>> hc2_hiv_pop;
-  TensorFixedSize<real_type, Sizes<hTS<ChildModel>, hc1DS<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>> hc1_art_pop;
-  TensorFixedSize<real_type, Sizes<hTS<ChildModel>, hc2DS<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>> hc2_art_pop;
-  TensorFixedSize<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>> hc1_noart_aids_deaths;
-  TensorFixedSize<real_type, Sizes<hc2DS<ChildModel>, hcTT<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>> hc2_noart_aids_deaths;
-  TensorFixedSize<real_type, Sizes<hTS<ChildModel>, hc1DS<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>> hc1_art_aids_deaths;
-  TensorFixedSize<real_type, Sizes<hTS<ChildModel>, hc2DS<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>> hc2_art_aids_deaths;
-  real_type hiv_births;
-  TensorFixedSize<real_type, Sizes<4>> hc_art_total;
-  TensorFixedSize<real_type, Sizes<4>> hc_art_init;
-  TensorFixedSize<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, 15, NS<ChildModel>>> hc_art_need_init;
-  real_type ctx_need;
-  real_type ctx_mean;
+template<typename real_type, bool OwnedData>
+struct ChildModelState<ChildModel, real_type, OwnedData> {
+  TensorType<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData> hc1_hiv_pop;
+  TensorType<real_type, Sizes<hc2DS<ChildModel>, hcTT<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData> hc2_hiv_pop;
+  TensorType<real_type, Sizes<hTS<ChildModel>, hc1DS<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData> hc1_art_pop;
+  TensorType<real_type, Sizes<hTS<ChildModel>, hc2DS<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData> hc2_art_pop;
+  TensorType<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData> hc1_noart_aids_deaths;
+  TensorType<real_type, Sizes<hc2DS<ChildModel>, hcTT<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData> hc2_noart_aids_deaths;
+  TensorType<real_type, Sizes<hTS<ChildModel>, hc1DS<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData> hc1_art_aids_deaths;
+  TensorType<real_type, Sizes<hTS<ChildModel>, hc2DS<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData> hc2_art_aids_deaths;
+  TensorType<real_type, Sizes<1>, OwnedData> hiv_births;
+  TensorType<real_type, Sizes<4>, OwnedData> hc_art_total;
+  TensorType<real_type, Sizes<4>, OwnedData> hc_art_init;
+  TensorType<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, 15, NS<ChildModel>>, OwnedData> hc_art_need_init;
+  TensorType<real_type, Sizes<1>, OwnedData> ctx_need;
+  TensorType<real_type, Sizes<1>, OwnedData> ctx_mean;
 
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   ChildModelState(const Parameters<ChildModel, real_type> &pars) {
+
     reset();
   }
 
+  template<bool O = OwnedData, typename = std::enable_if_t<!O>>
+  ChildModelState(
+    const TensorType<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc1_hiv_pop,
+    const TensorType<real_type, Sizes<hc2DS<ChildModel>, hcTT<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc2_hiv_pop,
+    const TensorType<real_type, Sizes<hTS<ChildModel>, hc1DS<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc1_art_pop,
+    const TensorType<real_type, Sizes<hTS<ChildModel>, hc2DS<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc2_art_pop,
+    const TensorType<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc1_noart_aids_deaths,
+    const TensorType<real_type, Sizes<hc2DS<ChildModel>, hcTT<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc2_noart_aids_deaths,
+    const TensorType<real_type, Sizes<hTS<ChildModel>, hc1DS<ChildModel>, hc1AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc1_art_aids_deaths,
+    const TensorType<real_type, Sizes<hTS<ChildModel>, hc2DS<ChildModel>, hc2AG<ChildModel>, NS<ChildModel>>, OwnedData>& hc2_art_aids_deaths,
+    const TensorType<real_type, Sizes<1>, OwnedData>& hiv_births,
+    const TensorType<real_type, Sizes<4>, OwnedData>& hc_art_total,
+    const TensorType<real_type, Sizes<4>, OwnedData>& hc_art_init,
+    const TensorType<real_type, Sizes<hc1DS<ChildModel>, hcTT<ChildModel>, 15, NS<ChildModel>>, OwnedData>& hc_art_need_init,
+    const TensorType<real_type, Sizes<1>, OwnedData>& ctx_need,
+    const TensorType<real_type, Sizes<1>, OwnedData>& ctx_mean
+  ) :
+    hc1_hiv_pop(hc1_hiv_pop),
+    hc2_hiv_pop(hc2_hiv_pop),
+    hc1_art_pop(hc1_art_pop),
+    hc2_art_pop(hc2_art_pop),
+    hc1_noart_aids_deaths(hc1_noart_aids_deaths),
+    hc2_noart_aids_deaths(hc2_noart_aids_deaths),
+    hc1_art_aids_deaths(hc1_art_aids_deaths),
+    hc2_art_aids_deaths(hc2_art_aids_deaths),
+    hiv_births(hiv_births),
+    hc_art_total(hc_art_total),
+    hc_art_init(hc_art_init),
+    hc_art_need_init(hc_art_need_init),
+    ctx_need(ctx_need),
+    ctx_mean(ctx_mean) {}
+
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   void reset() {
     hc1_hiv_pop.setZero();
     hc2_hiv_pop.setZero();
@@ -88,24 +162,32 @@ struct ChildModelState<ChildModel, real_type> {
     hc2_noart_aids_deaths.setZero();
     hc1_art_aids_deaths.setZero();
     hc2_art_aids_deaths.setZero();
-    hiv_births = 0;
+    hiv_births.setZero();
     hc_art_total.setZero();
     hc_art_init.setZero();
     hc_art_need_init.setZero();
-    ctx_need = 0;
-    ctx_mean = 0;
+    ctx_need.setZero();
+    ctx_mean.setZero();
   }
 };
 
-template<typename ModelVariant, typename real_type>
+template<typename ModelVariant, typename real_type, bool OwnedData>
 struct State {
-  BaseModelState<ModelVariant, real_type> base;
-  ChildModelState<ModelVariant, real_type> children;
+  BaseModelState<ModelVariant, real_type, OwnedData> base;
+  ChildModelState<ModelVariant, real_type, OwnedData> children;
 
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   State(const Parameters<ModelVariant, real_type> &pars) :
       base(pars),
       children(pars) {}
 
+  template<bool O = OwnedData, typename = std::enable_if_t<!O>>
+  State(const BaseModelState<ModelVariant, real_type, OwnedData> &base,
+        const ChildModelState<ModelVariant, real_type, OwnedData> &children)
+    : base(base),
+      children(children) {}
+
+  template<bool O = OwnedData, typename = std::enable_if_t<O>>
   void reset() {
     base.reset();
     children.reset();

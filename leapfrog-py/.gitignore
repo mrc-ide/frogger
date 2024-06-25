@@ -1,0 +1,10 @@
+*.pyc
+__pycache__
+.coverage*
+.idea
+.vscode
+.direnv
+/dist
+docs/_build
+.mypy_cache
+.pytest_cache
