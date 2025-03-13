@@ -96,7 +96,7 @@ static child_params_type<ModelVariant, real_type> get_child_params(const Rcpp::L
     const leapfrog::TensorMap3<real_type> hc2_cd4_mort = parse_data<real_type>(data, "adol_cd4_mort", children.hc2DS, children.hcTT, children.hc2AG);
     const leapfrog::TensorMap3<real_type> hc1_cd4_prog = parse_data<real_type>(data, "paed_cd4_prog", children.hc1DS, children.hc1AG_c, dp.NS);
     const leapfrog::TensorMap3<real_type> hc2_cd4_prog = parse_data<real_type>(data, "adol_cd4_prog", children.hc2DS, children.hc2AG_c, dp.NS);
-    const real_type ctx_effect = Rcpp::as<real_type>(data["ctx_effect"]);
+    const leapfrog::TensorMap1<real_type> ctx_effect = parse_data<real_type>(data, "ctx_effect", 3);
     const leapfrog::TensorMap1<real_type> ctx_val = parse_data<real_type>(data, "ctx_val", proj_years);
     const leapfrog::TensorMap1<int> hc_art_elig_age = parse_data<int>(data, "paed_art_elig_age", proj_years);
     const leapfrog::Tensor2<real_type> hc_art_elig_cd4 = convert_0_based<2>(parse_data<real_type>(data, "paed_art_elig_cd4", options.p_idx_hiv_first_adult, proj_years));
@@ -134,6 +134,7 @@ static child_params_type<ModelVariant, real_type> get_child_params(const Rcpp::L
     const leapfrog::TensorMap2<real_type> adult_female_infections = parse_data<real_type>(data, "adult_female_infections", options.p_fertility_age_groups, proj_years);
     const leapfrog::TensorMap2<real_type> adult_female_hivnpop = parse_data<real_type>(data, "hivnpop", options.p_fertility_age_groups, proj_years);
     const leapfrog::TensorMap1<real_type> total_births = parse_data<real_type>(data, "total_births", proj_years);
+    const real_type hc_art_start = Rcpp::as<real_type>(data["hc_art_start"]);
     const leapfrog::Children<real_type> children_params = {
         hc_nosocomial,
         hc1_cd4_dist,
@@ -180,6 +181,7 @@ static child_params_type<ModelVariant, real_type> get_child_params(const Rcpp::L
         adult_female_infections,
         adult_female_hivnpop,
         total_births,
+        hc_art_start,
     };
     return leapfrog::ChildModelParameters<real_type> {
       children_params
