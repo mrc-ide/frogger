@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utils/input_utils.hpp"
 #include "config.hpp"
 
 namespace leapfrog {
@@ -10,7 +11,7 @@ struct ConfigMixer;
 template<typename real_type, MV ModelVariant>
 struct ConfigMixer<real_type, ModelVariant> {
   struct Pars {};
-  static Pars get_pars(const Rcpp::List &data, const Opts<real_type> &options, const int proj_years) {
+  static Pars get_pars(const InputData &data, const Opts<real_type> &options, const int proj_years) {
     Pars p = {}; return p;
   };
 
@@ -53,7 +54,7 @@ struct ConfigMixer<real_type1, ModelVariant1, Pair<true, DpConfig<real_type1, Mo
     typename CurrConfig::Pars dp;
   };
 
-  static Pars get_pars(const Rcpp::List &data, const Opts<real_type> &options, const int proj_years) {
+  static Pars get_pars(const InputData &data, const Opts<real_type> &options, const int proj_years) {
     Pars p = {
       NextConfigMixer::get_pars(data, options, proj_years),
       CurrConfig::get_pars(data, options, proj_years)
@@ -137,7 +138,7 @@ struct ConfigMixer<real_type1, ModelVariant1, Pair<true, HaConfig<real_type1, Mo
     typename CurrConfig::Pars ha;
   };
 
-  static Pars get_pars(const Rcpp::List &data, const Opts<real_type> &options, const int proj_years) {
+  static Pars get_pars(const InputData &data, const Opts<real_type> &options, const int proj_years) {
     Pars p = {
       NextConfigMixer::get_pars(data, options, proj_years),
       CurrConfig::get_pars(data, options, proj_years)
@@ -221,7 +222,7 @@ struct ConfigMixer<real_type1, ModelVariant1, Pair<true, HcConfig<real_type1, Mo
     typename CurrConfig::Pars hc;
   };
 
-  static Pars get_pars(const Rcpp::List &data, const Opts<real_type> &options, const int proj_years) {
+  static Pars get_pars(const InputData &data, const Opts<real_type> &options, const int proj_years) {
     Pars p = {
       NextConfigMixer::get_pars(data, options, proj_years),
       CurrConfig::get_pars(data, options, proj_years)
