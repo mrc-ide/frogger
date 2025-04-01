@@ -2,10 +2,12 @@
 
 #include "generated/model_variants.hpp"
 #include "generated/config_mixer.hpp"
+#include "generated/concepts.hpp"
 #include "models/general_demographic_projection.hpp"
 #include "models/hiv_demographic_projection.hpp"
-#include "models/hiv_model_simulation.hpp"
+#include "models/adult_hiv_model_simulation.hpp"
 #include "models/child_model_simulation.hpp"
+#include "utils/language_types.hpp"
 
 namespace leapfrog {
 
@@ -20,26 +22,21 @@ struct Leapfrog {
   using Options = Config::Options;
   using Args = Config::Args;
 
-  static Rcpp::List simulate_model(
-    const Rcpp::List& data,
+  static void simulate_model(
+    const InputData &data,
     const int time_steps,
     const int hiv_steps,
     const std::vector<int>& save_steps,
     const bool is_midyear_projection,
-    const int t_ART_start
+    const int t_ART_start,
+    OutputData output
   ) {
     const auto opts = get_opts(hiv_steps, t_ART_start, is_midyear_projection);
     const auto pars = Config::get_pars(data, opts, time_steps);
-    
+
     auto state = run_model(time_steps, save_steps, pars, opts);
 
-    const int output_size = Config::get_build_output_size(0);
-    Rcpp::List ret(output_size);
-    Rcpp::CharacterVector names(output_size);
-    Config::build_output(ret, names, 0, state, save_steps.size());
-    ret.attr("names") = names;
-  
-    return ret;
+    Config::build_output(output, 0, state, save_steps.size());
   };
 
   private:
@@ -108,7 +105,7 @@ struct Leapfrog {
   static void project_year(Args& args) {
     GeneralDemographicProjection<Config> general_dp(args);
     HivDemographicProjection<Config> hiv_dp(args);
-    HivModelSimulation<Config> hiv_sim(args);
+    AdultHivModelSimulation<Config> hiv_sim(args);
     ChildModelSimulation<Config> child_sim(args);
 
     if constexpr (ModelVariant::run_demographic_projection) {
