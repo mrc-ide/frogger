@@ -5,13 +5,10 @@
 
 <!-- badges: start -->
 
-[![Project Status: Concept – Minimal or no implementation has been done
-yet, or the repository is only intended to be a limited example, demo,
-or
-proof-of-concept.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
-[![R build
-status](https://github.com/mrc-ide/frogger/workflows/R-CMD-check/badge.svg)](https://github.com/mrc-ide/frogger/actions)
-[![codecov.io](https://codecov.io/github/mrc-ide/frogger/coverage.svg?branch=main)](https://codecov.io/github/mrc-ide/frogger?branch=main)
+[![Project Status: WIP – Initial development is in progress, but there
+has not yet been a stable, usable release suitable for the
+public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![R-CMD-check](https://github.com/mrc-ide/frogger/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/mrc-ide/frogger/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 Leapfrog is a multistate population projection model for demographic and
@@ -37,9 +34,6 @@ The simulation model is implemented in a header-only C++ library located
 in [`inst/include/frogger.hpp`](inst/include/frogger.hpp). This location
 allows the C++ code to be imported in other R packages via specifying
 `LinkingTo: leapfrog` in the `DESCRIPTION` file.
-
-> [!IMPORTANT]
-> We use C++20 for this package. Please make sure you have a compiler that is compatible.
 
 The simulation model is callable in R via a wrapper function
 `run_model()` created with [Rcpp](https://www.rcpp.org).
@@ -68,8 +62,7 @@ library(frogger)
 pjnz <- system.file("pjnz/bwa_aim-adult-art-no-special-elig_v6.13_2022-04-18.PJNZ",
                     package = "frogger", mustWork = TRUE)
 
-demp <- prepare_leapfrog_demp(pjnz)
-hivp <- prepare_leapfrog_projp(pjnz)
+parameters <- prepare_leapfrog_parameters(pjnz)
 ```
 
 Simulate adult ‘full’ age group (single-year age) and ‘coarse’ age group
@@ -77,10 +70,8 @@ Simulate adult ‘full’ age group (single-year age) and ‘coarse’ age group
 per year.
 
 ``` r
-lsimF <- run_model(demp, hivp, 1970:2030, 10L,
-                   hiv_age_stratification = "full", run_child_model = FALSE)
-lsimC <- run_model(demp, hivp, 1970:2030, 10L,
-                   hiv_age_stratification = "coarse", run_child_model = FALSE)
+lsimF <- run_model(parameters, "HivFullAgeStratification", 1970:2030)
+lsimC <- run_model(parameters, "HivCoarseAgeStratification", 1970:2030)
 ```
 
 Compare the HIV prevalence age 15-49 years and AIDS deaths 50+ years.
@@ -139,11 +130,12 @@ header-only open source libraries to maximize portability.
 
 ### Code generation
 
-To change what parameters can be passed in from `R` or the structure
-of `Intermediate`, `State` or `OutputState`, please modify json files
+To change what parameters can be passed in from `R` or the structure of
+`Intermediate`, `State` or `OutputState`, please modify json files
 [here](./cpp_generation/modelSchemas/).
 
-Then to run code generation follow [cpp_generation/README.md](./cpp_generation/README.md)
+Then to run code generation follow
+[cpp_generation/README.md](./cpp_generation/README.md)
 
 ### R functions
 
