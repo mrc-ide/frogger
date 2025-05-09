@@ -25,11 +25,23 @@ def load_children_model_schemas(paths):
     return [load_json("..", "modelSchemas", p) for p in paths]
 
 
-def generate_hpp(template_name, *args, **kwargs):
-  template = env.get_template(f'{template_name}.j2')
+def generate(template_path, dest_path, *args, **kwargs):
+  template = env.get_template(template_path)
   output = template.render(*args, **kwargs)
-  with open(relative_file_path("..", "..", "inst", "include", "generated", f"{template_name}.hpp"), "w") as f:
+  with open(dest_path, "w") as f:
     f.write(output)
+
+
+def generate_hpp(template_name, *args, **kwargs):
+  template_path = f'cpp/{template_name}.j2'
+  dest_path = relative_file_path("..", "..", "inst", "include", "generated", f"{template_name}.hpp")
+  generate(template_path, dest_path, *args, **kwargs)
+
+
+def generate_delphi(template_name, *args, **kwargs):
+  template_path = f'delphi/{template_name}.j2'
+  dest_path = relative_file_path("..", "..", "delphi", f"{template_name}.pas")
+  generate(template_path, dest_path, *args, **kwargs)
 
 
 dat = load_json("..", "modelSchemas", "FullModel.json")
@@ -54,3 +66,4 @@ generate_hpp("cpp_interface/cpp_adapters", dat | vars(utils.config))
 generate_hpp("r_interface/r_adapters", dat | vars(utils.config))
 generate_hpp("c_interface/c_adapters", dat | vars(utils.config))
 generate_hpp("c_interface/c_types", dat | vars(utils.config))
+generate_delphi("LeapfrogInterface", dat | vars(utils.config))
