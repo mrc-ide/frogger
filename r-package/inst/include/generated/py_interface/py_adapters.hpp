@@ -257,9 +257,9 @@ struct HcAdapter<Language::Py, real_type, ModelVariant> {
       .hc_art_isperc = parse_data<int, 1>(data, "artpaeds_isperc", { nda::dim<>(0, opts.proj_steps, 1) }),
       .hc_art_val = parse_data<real_type, 2>(data, "paed_art_val", { nda::dim<>(0, SS::hcAG_coarse, 1), nda::dim<>(0, opts.proj_steps, (SS::hcAG_coarse)) }),
       .hc_art_init_dist = parse_data<real_type, 2>(data, "init_art_dist", { nda::dim<>(0, SS::p_idx_hiv_first_adult, 1), nda::dim<>(0, opts.proj_steps, (SS::p_idx_hiv_first_adult)) }),
-      .fert_mult_by_age = parse_data<real_type, 2>(data, "fert_rat", { nda::dim<>(0, SS::hAG_fert, 1), nda::dim<>(0, opts.proj_steps, (SS::hAG_fert)) }),
+      .fert_mult_by_age = parse_data<real_type, 2>(data, "fert_rat_full", { nda::dim<>(0, SS::hc_p_fertility_age_groups, 1), nda::dim<>(0, opts.proj_steps, (SS::hc_p_fertility_age_groups)) }),
       .fert_mult_off_art = parse_data<real_type, 1>(data, "cd4fert_rat", { nda::dim<>(0, SS::hDS, 1) }),
-      .fert_mult_on_art = parse_data<real_type, 1>(data, "frr_art6mos", { nda::dim<>(0, SS::hAG_fert, 1) }),
+      .fert_mult_on_art = parse_data<real_type, 1>(data, "frr_art6mos_full", { nda::dim<>(0, SS::hc_p_fertility_age_groups, 1) }),
       .total_fertility_rate = parse_data<real_type, 1>(data, "tfr", { nda::dim<>(0, opts.proj_steps, 1) }),
       .PMTCT = parse_data<real_type, 2>(data, "pmtct", { nda::dim<>(0, SS::hPS, 1), nda::dim<>(0, opts.proj_steps, (SS::hPS)) }),
       .vertical_transmission_rate = parse_data<real_type, 2>(data, "mtct", { nda::dim<>(0, SS::hDS + 1, 1), nda::dim<>(0, SS::hVT, (SS::hDS + 1)) }),
@@ -277,12 +277,13 @@ struct HcAdapter<Language::Py, real_type, ModelVariant> {
       .abortion = parse_data<real_type, 2>(data, "abortion", { nda::dim<>(0, SS::hAB_ind, 1), nda::dim<>(0, opts.proj_steps, (SS::hAB_ind)) }),
       .patients_reallocated = parse_data<real_type, 1>(data, "patients_reallocated", { nda::dim<>(0, opts.proj_steps, 1) }),
       .hc_art_ltfu = parse_data<real_type, 1>(data, "paed_art_ltfu", { nda::dim<>(0, opts.proj_steps, 1) }),
-      .adult_female_infections = parse_data<real_type, 2>(data, "adult_female_infections", { nda::dim<>(0, SS::p_fertility_age_groups, 1), nda::dim<>(0, opts.proj_steps, (SS::p_fertility_age_groups)) }),
-      .adult_female_hivnpop = parse_data<real_type, 2>(data, "hivnpop", { nda::dim<>(0, SS::p_fertility_age_groups, 1), nda::dim<>(0, opts.proj_steps, (SS::p_fertility_age_groups)) }),
+      .adult_female_infections = parse_data<real_type, 2>(data, "adult_female_infections_full", { nda::dim<>(0, SS::hc_p_fertility_age_groups, 1), nda::dim<>(0, opts.proj_steps, (SS::hc_p_fertility_age_groups)) }),
+      .adult_female_hivnpop = parse_data<real_type, 2>(data, "hivnpop_full", { nda::dim<>(0, SS::hc_p_fertility_age_groups, 1), nda::dim<>(0, opts.proj_steps, (SS::hc_p_fertility_age_groups)) }),
       .total_births = parse_data<real_type, 1>(data, "total_births", { nda::dim<>(0, opts.proj_steps, 1) }),
       .ctx_effect = parse_data<real_type, 1>(data, "ctx_effect", { nda::dim<>(0, 3, 1) }),
       .hc_art_start = nb::cast<int>(data["hc_art_start"]),
-      .local_adj_factor = nb::cast<real_type>(data["laf"])
+      .local_adj_factor = nb::cast<real_type>(data["frr_scalar"]),
+      .hc_age_specific_fertility_rate = parse_data<real_type, 2>(data, "asfr", { nda::dim<>(0, SS::hc_p_fertility_age_groups, 1), nda::dim<>(0, opts.proj_steps, (SS::hc_p_fertility_age_groups)) })
     };
   };
 
@@ -290,6 +291,7 @@ struct HcAdapter<Language::Py, real_type, ModelVariant> {
     const nb::dict &data
   ) {
     typename Config::State state;
+    fill_initial_state<real_type, typename Config::State::shape_hiv_births_by_mat_age>(data, "hiv_births_by_mat_age", state.hiv_births_by_mat_age);
     fill_initial_state<real_type, typename Config::State::shape_hc1_hiv_pop>(data, "hc1_hiv_pop", state.hc1_hiv_pop);
     fill_initial_state<real_type, typename Config::State::shape_hc2_hiv_pop>(data, "hc2_hiv_pop", state.hc2_hiv_pop);
     fill_initial_state<real_type, typename Config::State::shape_hc1_art_pop>(data, "hc1_art_pop", state.hc1_art_pop);
@@ -306,7 +308,7 @@ struct HcAdapter<Language::Py, real_type, ModelVariant> {
     return state;
   };
 
-  static constexpr int output_count = 13;
+  static constexpr int output_count = 14;
 
   static int build_output(
     int index,
@@ -314,6 +316,9 @@ struct HcAdapter<Language::Py, real_type, ModelVariant> {
     nb::dict& ret,
     const size_t& output_years
   ) {
+    const int py_rank_hiv_births_by_mat_age = 2;
+    size_t py_dims_hiv_births_by_mat_age[py_rank_hiv_births_by_mat_age] = { SS::hc_p_fertility_age_groups, output_years };
+    ret["hiv_births_by_mat_age"] = py_array<real_type>(state.hiv_births_by_mat_age.data(), py_rank_hiv_births_by_mat_age, py_dims_hiv_births_by_mat_age);
     const int py_rank_hc1_hiv_pop = 5;
     size_t py_dims_hc1_hiv_pop[py_rank_hc1_hiv_pop] = { SS::hc1DS, SS::hcTT, SS::hc1AG, SS::NS, output_years };
     ret["hc1_hiv_pop"] = py_array<real_type>(state.hc1_hiv_pop.data(), py_rank_hc1_hiv_pop, py_dims_hc1_hiv_pop);
@@ -361,6 +366,9 @@ struct HcAdapter<Language::Py, real_type, ModelVariant> {
     const Config::State& state,
     nb::dict& ret
   ) {
+    const int py_rank_hiv_births_by_mat_age = 1;
+    size_t py_dims_hiv_births_by_mat_age[py_rank_hiv_births_by_mat_age] = { SS::hc_p_fertility_age_groups };
+    ret["hiv_births_by_mat_age"] = py_array<real_type>(state.hiv_births_by_mat_age.data(), py_rank_hiv_births_by_mat_age, py_dims_hiv_births_by_mat_age);
     const int py_rank_hc1_hiv_pop = 4;
     size_t py_dims_hc1_hiv_pop[py_rank_hc1_hiv_pop] = { SS::hc1DS, SS::hcTT, SS::hc1AG, SS::NS };
     ret["hc1_hiv_pop"] = py_array<real_type>(state.hc1_hiv_pop.data(), py_rank_hc1_hiv_pop, py_dims_hc1_hiv_pop);

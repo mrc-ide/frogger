@@ -264,6 +264,8 @@ type
     hcArtStartLength: Integer;
     localAdjFactor: Double;
     localAdjFactorLength: Integer;
+    hcAgeSpecificFertilityRate: PDouble;
+    hcAgeSpecificFertilityRateLength: Integer;
 end;
 
 type
@@ -310,6 +312,7 @@ type
     ctxEffect: TGBFixedArray<Double>;
     hcArtStart: Integer;
     localAdjFactor: Double;
+    hcAgeSpecificFertilityRate: TGBFixedArray<Double>;
     function getView(): LeapfrogHivChildParamsView;
     procedure writeToDisk(dir: string);
     Destructor Destroy; override;
@@ -319,6 +322,8 @@ end;
 type
   LeapfrogHivChildStateView = record
   private
+    hivBirthsByMatAge: PDouble;
+    hivBirthsByMatAgeLength: Integer;
     hc1HivPop: PDouble;
     hc1HivPopLength: Integer;
     hc2HivPop: PDouble;
@@ -350,6 +355,7 @@ end;
 type
   LeapfrogHivChildState = class
   public
+    hivBirthsByMatAge: TGBFixedArray<Double>;
     hc1HivPop: TGBFixedArray<Double>;
     hc2HivPop: TGBFixedArray<Double>;
     hc1ArtPop: TGBFixedArray<Double>;
@@ -576,11 +582,13 @@ begin;
   adultFemaleHivnpop.Free;
   totalBirths.Free;
   ctxEffect.Free;
+  hcAgeSpecificFertilityRate.Free;
   inherited;
 end;
 
 destructor LeapfrogHivChildState.Destroy;
 begin;
+  hivBirthsByMatAge.Free;
   hc1HivPop.Free;
   hc2HivPop.Free;
   hc1ArtPop.Free;
@@ -681,10 +689,14 @@ begin;
   Result.hcArtStartLength := 1;
   Result.localAdjFactor := localAdjFactor;
   Result.localAdjFactorLength := 1;
+  Result.hcAgeSpecificFertilityRate := PDouble(hcAgeSpecificFertilityRate.data);
+  Result.hcAgeSpecificFertilityRateLength := hcAgeSpecificFertilityRate.GetLength();
 end;
 
 function LeapfrogHivChildState.getView(): LeapfrogHivChildStateView;
 begin;
+  Result.hivBirthsByMatAge := PDouble(hivBirthsByMatAge.data);
+  Result.hivBirthsByMatAgeLength := hivBirthsByMatAge.GetLength();
   Result.hc1HivPop := PDouble(hc1HivPop.data);
   Result.hc1HivPopLength := hc1HivPop.GetLength();
   Result.hc2HivPop := PDouble(hc2HivPop.data);
@@ -809,12 +821,14 @@ begin;
   adultFemaleHivnpop.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'adultFemaleHivnpop');
   totalBirths.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'totalBirths');
   ctxEffect.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'ctxEffect');
+  hcAgeSpecificFertilityRate.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'hcAgeSpecificFertilityRate');
 end;
 
 procedure LeapfrogHivChildState.writeToDisk(dir: string);
 begin;
   if not DirectoryExists(dir) then
     ForceDirectories(dir);
+  hivBirthsByMatAge.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'hivBirthsByMatAge');
   hc1HivPop.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'hc1HivPop');
   hc2HivPop.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'hc2HivPop');
   hc1ArtPop.WriteToDisk(IncludeTrailingPathDelimiter(dir) +  'hc1ArtPop');

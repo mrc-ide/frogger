@@ -659,8 +659,10 @@ dp_read_paed_art_eligibility <- function(dp) {
 #' pjnz <- system.file(
 #'   "pjnz/bwa_aim-adult-art-no-special-elig_v6.13_2022-04-18.PJNZ",
 #'   package = "frogger", mustWork = TRUE)
-#' projp <- prepare_leapfrog_projp(pjnz)
-#' projp <- prepare_hc_leapfrog_projp(pjnz, projp)
+#' demp <- prepare_leapfrog_demp(pjnz)
+#' proj <- prepare_leapfrog_projp(pjnz)
+#' parameters <- c(proj, demp)
+#' projp <- prepare_hc_leapfrog_projp(pjnz, params = parameters)
 #' @export
 prepare_hc_leapfrog_projp <- function(pjnz, params) {
   dp.x <- get_dp_data(pjnz)
@@ -893,8 +895,6 @@ prepare_hc_leapfrog_projp <- function(pjnz, params) {
 
 
   ##extract needed outputs to just run paed model
-  v$laf <- SpectrumUtils::dp.inputs.hiv.frr.location(dp.raw = dp.x)
-
   wlhiv_births <- dpsub(dp = dp.x, "<ChildNeedPMTCT MV>", 2, timedat.idx) %>% unname()
   names(wlhiv_births) <- proj.years
   rownames(wlhiv_births) <- NULL
@@ -926,8 +926,23 @@ prepare_hc_leapfrog_projp <- function(pjnz, params) {
     inc.array[,i] <- inc[[(i+1)]]
   }
 
-  v$hivnpop <- hivnpop
-  v$adult_female_infections <- inc.array
+  v$hivnpop_full <- hivnpop
+  v$adult_female_infections_full <- inc.array
+
+  h.fert.idx <- which((15L-1 + cumsum(params$hAG_SPAN_coarse)) %in% 15:49)
+  fert_rat.h.ag <- findInterval(as.integer(rownames(hivnpop)),
+                                15L + cumsum(v$hAG_SPAN_coarse[h.fert.idx]) -
+                                  v$hAG_SPAN_coarse[h.fert.idx])
+  coarse_age_groups <- cut(15:49,
+                           breaks = 15L + cumsum(v$hAG_SPAN_coarse[h.fert.idx]) -
+                             v$hAG_SPAN_coarse[h.fert.idx],
+                           right = FALSE)
+  v$hivnpop_coarse <- as.array(rowsum(hivnpop, group = coarse_age_groups))
+  v$adult_female_infections_coarse <- as.array(rowsum(inc.array, group = coarse_age_groups))
+
+  ##Make a coarse ASFR, needed to run WLHIV births at the coarse level
+  fert_ages.idx <- 1L + cumsum(params$hAG_SPAN_coarse[h.fert.idx]) - params$hAG_SPAN_coarse[h.fert.idx]
+  v$asfr_coarse <- as.array(rowsum(params$asfr, group = coarse_age_groups))
 
   total_births <- SpectrumUtils::dp.output.births(dp.raw = dp.x, direction = 'long')$Value %>% as.array()
   v$total_births <- total_births
@@ -946,6 +961,7 @@ prepare_hc_leapfrog_projp <- function(pjnz, params) {
   wlhiv_cd4 <- array(as.numeric(unlist(dpsub(dp = dp.x, "<CD4Distribution15_49 MV2>", 19:25, timedat.idx))), dim = c(7,length(timedat.idx)))
   v$prop_gte350 <- colSums(wlhiv_cd4[1:2,]) / colSums(wlhiv_cd4)
   v$prop_lt200 <- colSums(wlhiv_cd4[5:7,]) / colSums(wlhiv_cd4)
+
 
   return(v)
 }
