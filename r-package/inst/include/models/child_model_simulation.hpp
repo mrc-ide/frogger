@@ -127,6 +127,7 @@ struct ChildModelSimulation<Config> {
 
   void run_child_model_simulation() {
     const auto& p_hc = pars.hc;
+    auto& n_hc = state_next.hc;
 
     run_child_ageing();
 

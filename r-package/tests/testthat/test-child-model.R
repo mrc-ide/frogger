@@ -402,12 +402,11 @@ test_that("HIV related deaths among CLHIV not on ART align", {
   hc <- array(0, dim = c(15, 2, 61))
   hc[1:5, , ] <- hc1
   hc[6:15, , ] <- hc2
-  dt <- dplyr::right_join(reshape2::melt(hc), reshape2::melt(aids_deathsnoart), by = c("Var1", "Var2", "Var3"))
+  dimnames(hc) <- dimnames(aids_deathsnoart)
+  dt <- dplyr::right_join(reshape2::melt(hc), reshape2::melt(aids_deathsnoart), by = c("age", "sex", "years"))
   dt <- dt %>%
     dplyr::mutate(
-      age = Var1 - 1,
-      sex = dplyr::if_else(Var2 == 1, "Male", "Female"),
-      year = Var3 + 1969,
+      year = years,
       fr = value.x,
       spec = value.y
     ) %>%
@@ -433,12 +432,11 @@ test_that("HIV related deaths among CLHIV on ART align", {
   hc <- array(0, dim = c(15, 2, 61))
   hc[1:5, , ] <- hc1
   hc[6:15, , ] <- hc2
-  dt <- dplyr::right_join(reshape2::melt(hc), reshape2::melt(aids_deathsart), by = c("Var1", "Var2", "Var3"))
+  dimnames(hc) <- dimnames(aids_deathsart)
+  dt <- dplyr::right_join(reshape2::melt(hc), reshape2::melt(aids_deathsart), by = c("age", "sex", "years"))
   dt <- dt %>%
     dplyr::mutate(
-      age = Var1 - 1,
-      sex = dplyr::if_else(Var2 == 1, "Male", "Female"),
-      year = Var3 + 1969,
+      year = years,
       fr = value.x,
       spec = value.y
     ) %>%
