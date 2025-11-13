@@ -210,7 +210,7 @@
     "h_deaths_excess_nonaids_agesex": {
       "num_type": "real_type",
       "dims": ["SS::hAG", "SS::NS"]
-    },      
+    },
     "grad": {
       "num_type": "real_type",
       "dims": ["SS::hDS", "SS::hAG", "SS::NS"]
@@ -337,7 +337,7 @@
     "h_deaths_excess_nonaids_no_art": {
       "num_type": "real_type",
       "dims": ["SS::hDS", "SS::hAG", "SS::NS"]
-    },      
+    },
     "p_infections": {
       "num_type": "real_type",
       "dims": ["SS::pAG", "SS::NS"]
@@ -349,7 +349,7 @@
     "h_deaths_excess_nonaids_on_art": {
       "num_type": "real_type",
       "dims": ["SS::hTS", "SS::hDS", "SS::hAG", "SS::NS"]
-    },      
+    },
     "h_art_initiation": {
       "num_type": "real_type",
       "dims": ["SS::hDS", "SS::hAG", "SS::NS"]
@@ -361,7 +361,7 @@
     "p_deaths_excess_nonaids": {
       "num_type": "real_type",
       "dims": ["SS::pAG", "SS::NS"]
-    },      
+    },
     "p_net_migration_hivpop": {
       "num_type": "real_type",
       "dims": ["SS::pAG", "SS::NS"]
