@@ -142,7 +142,12 @@ struct HaAdapter<Language::R, real_type, ModelVariant> {
     const Options<real_type> &opts
   ) {
     return {
+      .incidence_model_choice = Rcpp::as<int>(data["incidence_model_choice"]),
       .input_adult_incidence_rate = parse_data<real_type, 1>(data, "incidinput", { nda::dim<>(0, opts.proj_steps, 1) }),
+      .transmission_rate_hts = parse_data<real_type, 1>(data, "transmission_rate_hts", { nda::dim<>(0, opts.proj_steps * opts.hts_per_year, 1) }),
+      .initial_incidence = Rcpp::as<real_type>(data["initial_incidence"]),
+      .epidemic_start_hts = Rcpp::as<int>(data["epidemic_start_hts"]),
+      .relative_infectiousness_art = Rcpp::as<real_type>(data["relative_infectiousness_art"]),
       .incidence_rate_ratio_age = parse_data<real_type, 3>(data, "incrr_age", { nda::dim<>(0, SS::pAG - SS::p_idx_hiv_first_adult, 1), nda::dim<>(0, SS::NS, (SS::pAG - SS::p_idx_hiv_first_adult)), nda::dim<>(0, opts.proj_steps, (SS::pAG - SS::p_idx_hiv_first_adult) * (SS::NS)) }),
       .incidence_rate_ratio_sex = parse_data<real_type, 1>(data, "incrr_sex", { nda::dim<>(0, opts.proj_steps, 1) }),
       .cd4_mortality = parse_data<real_type, 3>(data, "cd4_mort", { nda::dim<>(0, SS::hDS, 1), nda::dim<>(0, SS::hAG, (SS::hDS)), nda::dim<>(0, SS::NS, (SS::hDS) * (SS::hAG)) }),
@@ -188,10 +193,12 @@ struct HaAdapter<Language::R, real_type, ModelVariant> {
     fill_initial_state<real_type, typename Config::State::shape_p_net_migration_hivpop>(data, "p_net_migration_hivpop", state.p_net_migration_hivpop);
     fill_initial_state<real_type, typename Config::State::shape_hiv_births_by_mat_age>(data, "hiv_births_by_mat_age", state.hiv_births_by_mat_age);
     state.hiv_births = Rcpp::as<real_type>(data["hiv_births"]);
+    fill_initial_state<real_type, typename Config::State::shape_prev15to49_hts>(data, "prev15to49_hts", state.prev15to49_hts);
+    fill_initial_state<real_type, typename Config::State::shape_incid15to49_hts>(data, "incid15to49_hts", state.incid15to49_hts);
     return state;
   };
 
-  static constexpr int output_count = 15;
+  static constexpr int output_count = 17;
 
   static int build_output(
     int index,
@@ -275,6 +282,16 @@ struct HaAdapter<Language::R, real_type, ModelVariant> {
     std::copy_n(state.hiv_births.data(), state.hiv_births.size(), REAL(r_hiv_births));
     names[index + 14] = "hiv_births";
     ret[index + 14] = r_hiv_births;
+    Rcpp::NumericVector r_prev15to49_hts(10 * output_years);
+    r_prev15to49_hts.attr("dim") = Rcpp::IntegerVector::create(10, output_years);
+    std::copy_n(state.prev15to49_hts.data(), state.prev15to49_hts.size(), REAL(r_prev15to49_hts));
+    names[index + 15] = "prev15to49_hts";
+    ret[index + 15] = r_prev15to49_hts;
+    Rcpp::NumericVector r_incid15to49_hts(10 * output_years);
+    r_incid15to49_hts.attr("dim") = Rcpp::IntegerVector::create(10, output_years);
+    std::copy_n(state.incid15to49_hts.data(), state.incid15to49_hts.size(), REAL(r_incid15to49_hts));
+    names[index + 16] = "incid15to49_hts";
+    ret[index + 16] = r_incid15to49_hts;
     return index + output_count;
   };
 
@@ -356,6 +373,16 @@ struct HaAdapter<Language::R, real_type, ModelVariant> {
     ret[index + 13] = r_hiv_births_by_mat_age;
     names[index + 14] = "hiv_births";
     ret[index + 14] = state.hiv_births;
+    Rcpp::NumericVector r_prev15to49_hts(10);
+    r_prev15to49_hts.attr("dim") = Rcpp::IntegerVector::create(10);
+    std::copy_n(state.prev15to49_hts.data(), state.prev15to49_hts.size(), REAL(r_prev15to49_hts));
+    names[index + 15] = "prev15to49_hts";
+    ret[index + 15] = r_prev15to49_hts;
+    Rcpp::NumericVector r_incid15to49_hts(10);
+    r_incid15to49_hts.attr("dim") = Rcpp::IntegerVector::create(10);
+    std::copy_n(state.incid15to49_hts.data(), state.incid15to49_hts.size(), REAL(r_incid15to49_hts));
+    names[index + 16] = "incid15to49_hts";
+    ret[index + 16] = r_incid15to49_hts;
     return index + output_count;
   };
 };

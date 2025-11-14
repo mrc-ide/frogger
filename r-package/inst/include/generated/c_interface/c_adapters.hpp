@@ -116,7 +116,12 @@ struct HaAdapter<Language::C, real_type, ModelVariant> {
     const Options<real_type> &opts
   ) {
     return {
+      .incidence_model_choice = params.ha->incidence_model_choice,
       .input_adult_incidence_rate = read_data<real_type, 1>(params.ha->input_adult_incidence_rate, params.ha->input_adult_incidence_rate_length, "input_adult_incidence_rate", { nda::dim<>(0, opts.proj_steps, 1) }),
+      .transmission_rate_hts = read_data<real_type, 1>(params.ha->transmission_rate_hts, params.ha->transmission_rate_hts_length, "transmission_rate_hts", { nda::dim<>(0, opts.proj_steps * opts.hts_per_year, 1) }),
+      .initial_incidence = params.ha->initial_incidence,
+      .epidemic_start_hts = params.ha->epidemic_start_hts,
+      .relative_infectiousness_art = params.ha->relative_infectiousness_art,
       .incidence_rate_ratio_age = read_data<real_type, 3>(params.ha->incidence_rate_ratio_age, params.ha->incidence_rate_ratio_age_length, "incidence_rate_ratio_age", { nda::dim<>(0, SS::pAG - SS::p_idx_hiv_first_adult, 1), nda::dim<>(0, SS::NS, (SS::pAG - SS::p_idx_hiv_first_adult)), nda::dim<>(0, opts.proj_steps, (SS::pAG - SS::p_idx_hiv_first_adult) * (SS::NS)) }),
       .incidence_rate_ratio_sex = read_data<real_type, 1>(params.ha->incidence_rate_ratio_sex, params.ha->incidence_rate_ratio_sex_length, "incidence_rate_ratio_sex", { nda::dim<>(0, opts.proj_steps, 1) }),
       .cd4_mortality = read_data<real_type, 3>(params.ha->cd4_mortality, params.ha->cd4_mortality_length, "cd4_mortality", { nda::dim<>(0, SS::hDS, 1), nda::dim<>(0, SS::hAG, (SS::hDS)), nda::dim<>(0, SS::NS, (SS::hDS) * (SS::hAG)) }),
@@ -162,10 +167,12 @@ struct HaAdapter<Language::C, real_type, ModelVariant> {
     fill_initial_state<real_type, typename Config::State::shape_p_net_migration_hivpop>(state.ha->p_net_migration_hivpop, state.ha->p_net_migration_hivpop_length, "p_net_migration_hivpop", initial_state.p_net_migration_hivpop);
     fill_initial_state<real_type, typename Config::State::shape_hiv_births_by_mat_age>(state.ha->hiv_births_by_mat_age, state.ha->hiv_births_by_mat_age_length, "hiv_births_by_mat_age", initial_state.hiv_births_by_mat_age);
     initial_state.hiv_births = *(state.ha->hiv_births);
+    fill_initial_state<real_type, typename Config::State::shape_prev15to49_hts>(state.ha->prev15to49_hts, state.ha->prev15to49_hts_length, "prev15to49_hts", initial_state.prev15to49_hts);
+    fill_initial_state<real_type, typename Config::State::shape_incid15to49_hts>(state.ha->incid15to49_hts, state.ha->incid15to49_hts_length, "incid15to49_hts", initial_state.incid15to49_hts);
     return initial_state;
   };
 
-  static constexpr int output_count = 15;
+  static constexpr int output_count = 17;
 
   static int build_output(
     int index,
@@ -187,6 +194,8 @@ struct HaAdapter<Language::C, real_type, ModelVariant> {
     write_data<real_type, typename Config::OutputState::shape_p_net_migration_hivpop>(state.p_net_migration_hivpop, out.ha->p_net_migration_hivpop, out.ha->p_net_migration_hivpop_length, "p_net_migration_hivpop");
     write_data<real_type, typename Config::OutputState::shape_hiv_births_by_mat_age>(state.hiv_births_by_mat_age, out.ha->hiv_births_by_mat_age, out.ha->hiv_births_by_mat_age_length, "hiv_births_by_mat_age");
     write_data<real_type, typename Config::OutputState::shape_hiv_births>(state.hiv_births, out.ha->hiv_births, out.ha->hiv_births_length, "hiv_births");
+    write_data<real_type, typename Config::OutputState::shape_prev15to49_hts>(state.prev15to49_hts, out.ha->prev15to49_hts, out.ha->prev15to49_hts_length, "prev15to49_hts");
+    write_data<real_type, typename Config::OutputState::shape_incid15to49_hts>(state.incid15to49_hts, out.ha->incid15to49_hts, out.ha->incid15to49_hts_length, "incid15to49_hts");
     return index + output_count;
   };
 
@@ -210,6 +219,8 @@ struct HaAdapter<Language::C, real_type, ModelVariant> {
     write_data<real_type, typename Config::State::shape_p_net_migration_hivpop>(state.p_net_migration_hivpop, out.ha->p_net_migration_hivpop, out.ha->p_net_migration_hivpop_length, "p_net_migration_hivpop");
     write_data<real_type, typename Config::State::shape_hiv_births_by_mat_age>(state.hiv_births_by_mat_age, out.ha->hiv_births_by_mat_age, out.ha->hiv_births_by_mat_age_length, "hiv_births_by_mat_age");
     *(out.ha->hiv_births) = state.hiv_births;
+    write_data<real_type, typename Config::State::shape_prev15to49_hts>(state.prev15to49_hts, out.ha->prev15to49_hts, out.ha->prev15to49_hts_length, "prev15to49_hts");
+    write_data<real_type, typename Config::State::shape_incid15to49_hts>(state.incid15to49_hts, out.ha->incid15to49_hts, out.ha->incid15to49_hts_length, "incid15to49_hts");
     return index + output_count;
   };
 };

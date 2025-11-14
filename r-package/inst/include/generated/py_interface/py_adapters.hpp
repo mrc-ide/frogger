@@ -124,7 +124,12 @@ struct HaAdapter<Language::Py, real_type, ModelVariant> {
     const Options<real_type> &opts
   ) {
     return {
+      .incidence_model_choice = nb::cast<int>(data["incidence_model_choice"]),
       .input_adult_incidence_rate = parse_data<real_type, 1>(data, "incidinput", { nda::dim<>(0, opts.proj_steps, 1) }),
+      .transmission_rate_hts = parse_data<real_type, 1>(data, "transmission_rate_hts", { nda::dim<>(0, opts.proj_steps * opts.hts_per_year, 1) }),
+      .initial_incidence = nb::cast<real_type>(data["initial_incidence"]),
+      .epidemic_start_hts = nb::cast<int>(data["epidemic_start_hts"]),
+      .relative_infectiousness_art = nb::cast<real_type>(data["relative_infectiousness_art"]),
       .incidence_rate_ratio_age = parse_data<real_type, 3>(data, "incrr_age", { nda::dim<>(0, SS::pAG - SS::p_idx_hiv_first_adult, 1), nda::dim<>(0, SS::NS, (SS::pAG - SS::p_idx_hiv_first_adult)), nda::dim<>(0, opts.proj_steps, (SS::pAG - SS::p_idx_hiv_first_adult) * (SS::NS)) }),
       .incidence_rate_ratio_sex = parse_data<real_type, 1>(data, "incrr_sex", { nda::dim<>(0, opts.proj_steps, 1) }),
       .cd4_mortality = parse_data<real_type, 3>(data, "cd4_mort", { nda::dim<>(0, SS::hDS, 1), nda::dim<>(0, SS::hAG, (SS::hDS)), nda::dim<>(0, SS::NS, (SS::hDS) * (SS::hAG)) }),
@@ -170,10 +175,12 @@ struct HaAdapter<Language::Py, real_type, ModelVariant> {
     fill_initial_state<real_type, typename Config::State::shape_p_net_migration_hivpop>(data, "p_net_migration_hivpop", state.p_net_migration_hivpop);
     fill_initial_state<real_type, typename Config::State::shape_hiv_births_by_mat_age>(data, "hiv_births_by_mat_age", state.hiv_births_by_mat_age);
     state.hiv_births = nb::cast<real_type>(data["hiv_births"]);
+    fill_initial_state<real_type, typename Config::State::shape_prev15to49_hts>(data, "prev15to49_hts", state.prev15to49_hts);
+    fill_initial_state<real_type, typename Config::State::shape_incid15to49_hts>(data, "incid15to49_hts", state.incid15to49_hts);
     return state;
   };
 
-  static constexpr int output_count = 15;
+  static constexpr int output_count = 17;
 
   static int build_output(
     int index,
@@ -226,6 +233,12 @@ struct HaAdapter<Language::Py, real_type, ModelVariant> {
     const int py_rank_hiv_births = 1;
     size_t py_dims_hiv_births[py_rank_hiv_births] = { output_years };
     ret["hiv_births"] = py_array<real_type>(state.hiv_births.data(), py_rank_hiv_births, py_dims_hiv_births);
+    const int py_rank_prev15to49_hts = 2;
+    size_t py_dims_prev15to49_hts[py_rank_prev15to49_hts] = { 10, output_years };
+    ret["prev15to49_hts"] = py_array<real_type>(state.prev15to49_hts.data(), py_rank_prev15to49_hts, py_dims_prev15to49_hts);
+    const int py_rank_incid15to49_hts = 2;
+    size_t py_dims_incid15to49_hts[py_rank_incid15to49_hts] = { 10, output_years };
+    ret["incid15to49_hts"] = py_array<real_type>(state.incid15to49_hts.data(), py_rank_incid15to49_hts, py_dims_incid15to49_hts);
     return index + output_count;
   };
 
@@ -277,6 +290,12 @@ struct HaAdapter<Language::Py, real_type, ModelVariant> {
     size_t py_dims_hiv_births_by_mat_age[py_rank_hiv_births_by_mat_age] = { SS::h_fertility_age_groups };
     ret["hiv_births_by_mat_age"] = py_array<real_type>(state.hiv_births_by_mat_age.data(), py_rank_hiv_births_by_mat_age, py_dims_hiv_births_by_mat_age);
     ret["hiv_births"] = state.hiv_births;
+    const int py_rank_prev15to49_hts = 1;
+    size_t py_dims_prev15to49_hts[py_rank_prev15to49_hts] = { 10 };
+    ret["prev15to49_hts"] = py_array<real_type>(state.prev15to49_hts.data(), py_rank_prev15to49_hts, py_dims_prev15to49_hts);
+    const int py_rank_incid15to49_hts = 1;
+    size_t py_dims_incid15to49_hts[py_rank_incid15to49_hts] = { 10 };
+    ret["incid15to49_hts"] = py_array<real_type>(state.incid15to49_hts.data(), py_rank_incid15to49_hts, py_dims_incid15to49_hts);
     return index + output_count;
   };
 };
